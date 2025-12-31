@@ -131,6 +131,68 @@ Send a test message to your Pub/Sub topic:
 gcloud pubsub topics publish YOUR_PUBSUB_TOPIC --message='{"action":"discover","searchQuery":"test"}'
 ```
 
+## 🛠️ Development Workflow with Makefile
+
+This project includes a Makefile for streamlined development and deployment workflows.
+
+### Available Make Commands
+
+```bash
+# Show all available commands
+make help
+
+# Development workflow
+make install                # Install dependencies
+make build                  # Build TypeScript project
+make test                   # Run tests
+make lint                   # Run ESLint
+
+# Source deployment to Google Cloud Storage
+make zip                    # Create source.zip with project files
+make upload                 # Upload source.zip to GCS bucket
+make deploy-source          # Create zip and upload (recommended)
+
+# Full development deployment
+make dev-deploy             # Install → lint → test → build → deploy-source
+
+# Utilities
+make verify-gcs             # Verify Google Cloud Storage setup
+make list-gcs               # Show GCS bucket contents
+make clean                  # Remove generated files
+```
+
+### Quick Start with Make
+
+1. **Setup and verify GCS access:**
+   ```bash
+   make verify-gcs
+   ```
+
+2. **Deploy source code to GCS:**
+   ```bash
+   make deploy-source
+   ```
+
+3. **Full development workflow:**
+   ```bash
+   make dev-deploy
+   ```
+
+### Google Cloud Storage Configuration
+
+The Makefile deploys source code to:
+- **Bucket**: `edh-cube-discover-worker-source-localdev`
+- **File**: `source.zip`
+- **Location**: `gs://edh-cube-discover-worker-source-localdev/source.zip`
+
+The source zip includes:
+- `src/` directory
+- `package.json`, `tsconfig.json`, `jest.config.js`, `.eslintrc.js`
+- `yarn.lock`, `README.md`, `.gitignore`
+- `tests/` directory (if exists)
+
+Excludes: `node_modules/`, `dist/`, `.git/`, coverage files, logs
+
 ## 📁 Project Structure
 
 ```
@@ -145,6 +207,7 @@ edh-cube-discover-worker/
 ├── jest.config.js        # Jest configuration
 ├── .eslintrc.js         # ESLint configuration
 ├── .gitignore           # Git ignore rules
+├── Makefile             # Build and deployment automation
 └── README.md            # This file
 ```
 

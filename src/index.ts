@@ -7,7 +7,7 @@ import { CloudEvent, cloudEvent } from '@google-cloud/functions-framework';
  */
 
 // CloudEvent entry point for Eventarc triggers
-cloudEvent('main', (cloudEvent: CloudEvent<any>) => {
+cloudEvent('worker', (cloudEvent: CloudEvent<any>) => {
   console.log('EDH Cube Discover Worker started');
   console.log('CloudEvent received:', {
     id: cloudEvent.id,

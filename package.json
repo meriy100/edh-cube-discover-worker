@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "functions-framework --target=worker --source=dist/index.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "deploy": "gcloud functions deploy edh-cube-discover-worker --source . --entry-point main --runtime nodejs22 --trigger-topic YOUR_PUBSUB_TOPIC",
@@ -30,11 +30,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/functions-framework": "^5.0.0"
+    "@google-cloud/functions-framework": "^5.0.0",
+    "typescript": "^5.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
     "eslint": "^8.0.0",

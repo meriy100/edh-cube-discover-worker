@@ -9,7 +9,7 @@ module.exports = {
   plugins: ['@typescript-eslint'],
   extends: [
     'eslint:recommended',
-    '@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended',
   ],
   root: true,
   env: {
@@ -25,7 +25,6 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'warn',
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': 'error',
-    '@typescript-eslint/prefer-const': 'error',
 
     // General rules
     'no-console': 'off', // Allow console.log in Cloud Functions
@@ -36,7 +35,7 @@ module.exports = {
     'prefer-template': 'warn',
 
     // Code style
-    'indent': ['error', 2],
+    'indent': 'off', // Let TypeScript handle indentation
     'quotes': ['error', 'single'],
     'semi': ['error', 'always'],
     'comma-dangle': ['error', 'only-multiline'],
