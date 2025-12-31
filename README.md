@@ -13,7 +13,7 @@ Google Cloud Function for EDH Cube Discovery Worker built with TypeScript. Proce
 
 ## 📋 Prerequisites
 
-- [Node.js](https://nodejs.org/) (>=24.0.0)
+- [Node.js](https://nodejs.org/) (>=22.0.0)
 - [Yarn](https://yarnpkg.com/) (1.22.19)
 - [Volta](https://volta.sh/) for version management
 - [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) for deployment
@@ -103,14 +103,14 @@ yarn test -- --coverage
    gcloud functions deploy edh-cube-discover-worker \\
      --source . \\
      --entry-point main \\
-     --runtime nodejs24 \\
+     --runtime nodejs22 \\
      --trigger-topic YOUR_PUBSUB_TOPIC
 
    # Deploy with Eventarc trigger
    gcloud functions deploy edh-cube-discover-worker \\
      --source . \\
      --entry-point main \\
-     --runtime nodejs24 \\
+     --runtime nodejs22 \\
      --trigger-event-filters type=google.cloud.pubsub.topic.v1.messagePublished \\
      --trigger-event-filters-path-pattern topic=projects/YOUR_PROJECT_ID/topics/YOUR_TOPIC_NAME
    ```
@@ -183,7 +183,7 @@ This project uses Volta to manage Node.js and Yarn versions. The versions are pi
 ```json
 {
   "volta": {
-    "node": "24.12.0",
+    "node": "22.12.0",
     "yarn": "1.22.19"
   }
 }
