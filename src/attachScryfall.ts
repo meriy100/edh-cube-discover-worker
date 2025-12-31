@@ -1,9 +1,21 @@
 import { fetchScryfall  } from './scryfall';
+import { adminDb } from './firebase';
 
-export const attachScryfall= async ({ names }: { names: string[] }): Promise<void> => {
+interface Args {
+  cards: {
+    id: string
+    name: string
+  }[]
+}
 
-  for (const name of names) {
-    const data = await fetchScryfall(name);
-    console.log('Scryfall', name, data);
+export const attachScryfall= async (args: Args): Promise<void> => {
+
+  for (const card of args.cards) {
+    const data = await fetchScryfall(card.name);
+    console.log('Scryfall', card.name, data);
+    await adminDb().collection('cards').doc(card.id).update({
+      scryfall: data.en,
+      scryfallJa: data.ja
+    });
   }
 };

@@ -119,7 +119,10 @@ async function processCubeDiscoveryTask(taskData: unknown, attributes?: Record<s
   const { eventType } = z.object({ eventType: z.string() }).parse(attributes);
   switch (eventType) {
     case 'attachScryfall':
-      await attachScryfall(z.object({ names:  z.array(z.string()) }).parse(taskData));
+      await attachScryfall(
+        z.object({
+         cards: z.array(z.object({ id: z.string(),  name:  z.string() }))
+        }).parse(taskData));
       break;
   }
   console.log('Cube discovery task completed successfully');
