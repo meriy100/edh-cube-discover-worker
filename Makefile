@@ -1,20 +1,24 @@
 # EDH Cube Discover Worker Makefile
 # Builds and deploys source code to Google Cloud Storage
 
-# Variables
-ZIP_FILE = source.zip
-GCS_BUCKET = edh-cube-discover-worker-source-localdev
-TEMP_DIR = .temp-deploy
-PROJECT_NAME = edh-cube-discover-worker
 
-# Cloud Function Variables
-FUNCTION_NAME = worker
-REGION = asia-northeast1
-RUNTIME = nodejs22
-ENTRY_POINT = worker
-MEMORY = 256M
-TIMEOUT = 60
-PUBSUB_TOPIC = worker-topic
+# Environment settings
+ENV ?= localdev
+GCP_PROJECT ?= edh-cube-discover-$(ENV)
+
+# Variables (can be overridden with environment variables)
+ZIP_FILE ?= source.zip
+GCS_BUCKET ?= edh-cube-discover-worker-source-$(ENV)
+TEMP_DIR ?= .temp-deploy
+
+# Cloud Function Variables (can be overridden with environment variables)
+FUNCTION_NAME ?= worker
+REGION ?= asia-northeast1
+RUNTIME ?= nodejs22
+ENTRY_POINT ?= worker
+MEMORY ?= 256M
+TIMEOUT ?= 60
+PUBSUB_TOPIC ?= worker-topic
 
 # Default target
 .PHONY: help
@@ -41,9 +45,16 @@ help:
 	@echo "  make list-gcs               Show GCS bucket contents"
 	@echo ""
 	@echo "Configuration:"
+	@echo "  Environment: $(ENV)"
+	@echo "  GCP Project: $(GCP_PROJECT)"
 	@echo "  GCS Bucket: gs://$(GCS_BUCKET)"
 	@echo "  Function: $(FUNCTION_NAME) in region $(REGION)"
 	@echo "  Runtime: $(RUNTIME), Entry: $(ENTRY_POINT)"
+	@echo "  Pub/Sub Topic: $(PUBSUB_TOPIC)"
+	@echo ""
+	@echo "Environment Variables (can override defaults):"
+	@echo "  ENV, GCP_PROJECT, FUNCTION_NAME, REGION, RUNTIME"
+	@echo "  MEMORY, TIMEOUT, PUBSUB_TOPIC, GCS_BUCKET"
 	@echo ""
 
 # Install dependencies

@@ -28,18 +28,13 @@ jobs:
       id-token: write
       pull-requests: read
       deployments: write
-    strategy:
-      matrix:
-        function: [
-          "worker",
-        ]
     steps:
       - uses: chrnorm/deployment-action@v2
         name: Create GitHub deployment
         id: deployment
         with:
           token: '${{ secrets.GITHUB_TOKEN }}'
-          environment: ${{ inputs.environment }}-${{ matrix.function }}
+          environment: ${{ inputs.environment }}
       - uses: actions/checkout@v4
       - name: Authenticate to Google Cloud
         id: auth
@@ -52,6 +47,12 @@ jobs:
           create_credentials_file: true
       - name: Set up Cloud SDK
         uses: 'google-github-actions/setup-gcloud@v2'
+      - name: Deploy Cloud Function
+        env:
+          GCP_PROJECT_ID: ${{ inputs.gcp_project_id }}
+          ENV: ${{ inputs.environment }}
+        run: |
+          make deploy-full
 
       - name: Update deployment status (success)
         if: success()
@@ -59,7 +60,7 @@ jobs:
         with:
           token: '${{ secrets.GITHUB_TOKEN }}'
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-          environment: ${{ inputs.environment }}-${{ matrix.function }}
+          environment: ${{ inputs.environment }}
           state: 'success'
 
       - name: Update deployment status (failure)
@@ -68,5 +69,5 @@ jobs:
         with:
           token: '${{ secrets.GITHUB_TOKEN }}'
           deployment-id: ${{ steps.deployment.outputs.deployment_id }}
-          environment: ${{ inputs.environment }}-${{ matrix.function }}
+          environment: ${{ inputs.environment }}
           state: 'failure'
