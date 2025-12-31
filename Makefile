@@ -17,7 +17,7 @@ REGION ?= asia-northeast1
 RUNTIME ?= nodejs22
 ENTRY_POINT ?= worker
 MEMORY ?= 256M
-TIMEOUT ?= 60
+TIMEOUT ?= 540
 PUBSUB_TOPIC ?= worker-topic
 
 # Default target
