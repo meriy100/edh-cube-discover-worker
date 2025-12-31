@@ -19,6 +19,7 @@ ENTRY_POINT ?= worker
 MEMORY ?= 256M
 TIMEOUT ?= 540
 PUBSUB_TOPIC ?= worker-topic
+SERVICE_ACCOUNT ?= edh-cube-discover-worker@edh-cube-discover-$(ENV).iam.gserviceaccount.com
 
 # Default target
 .PHONY: help
@@ -50,10 +51,11 @@ help:
 	@echo "  Function: $(FUNCTION_NAME) in region $(REGION)"
 	@echo "  Runtime: $(RUNTIME), Entry: $(ENTRY_POINT)"
 	@echo "  Pub/Sub Topic: $(PUBSUB_TOPIC)"
+	@echo "  Service Account: $(SERVICE_ACCOUNT)"
 	@echo ""
 	@echo "Environment Variables (can override defaults):"
 	@echo "  ENV, GCP_PROJECT, FUNCTION_NAME, REGION, RUNTIME"
-	@echo "  MEMORY, TIMEOUT, PUBSUB_TOPIC, GCS_BUCKET"
+	@echo "  MEMORY, TIMEOUT, PUBSUB_TOPIC, GCS_BUCKET, SERVICE_ACCOUNT"
 	@echo ""
 
 # Install dependencies
@@ -165,6 +167,7 @@ deploy-function:
 	@echo "  Timeout: $(TIMEOUT)s"
 	@echo "  Source: gs://$(GCS_BUCKET)/$(ZIP_FILE)"
 	@echo "  Pub/Sub Topic: $(PUBSUB_TOPIC)"
+	@echo "  Service Account: $(SERVICE_ACCOUNT)"
 	@echo ""
 
 	# Check if Pub/Sub topic exists, create if it doesn't
@@ -187,6 +190,8 @@ deploy-function:
 		--timeout=$(TIMEOUT) \
 		--source=gs://$(GCS_BUCKET)/$(ZIP_FILE) \
 		--trigger-topic=$(PUBSUB_TOPIC) \
+		--service-account=$(SERVICE_ACCOUNT) \
+		--retry \
 		--max-instances=1 \
 		--quiet
 
