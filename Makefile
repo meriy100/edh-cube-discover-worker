@@ -7,21 +7,43 @@ GCS_BUCKET = edh-cube-discover-worker-source-localdev
 TEMP_DIR = .temp-deploy
 PROJECT_NAME = edh-cube-discover-worker
 
+# Cloud Function Variables
+FUNCTION_NAME = worker
+REGION = asia-northeast1
+RUNTIME = nodejs22
+ENTRY_POINT = worker
+MEMORY = 256M
+TIMEOUT = 60
+PUBSUB_TOPIC = worker-topic
+
 # Default target
 .PHONY: help
 help:
 	@echo "EDH Cube Discover Worker - Available Commands:"
 	@echo ""
-	@echo "  make zip                    Create source.zip with project files"
-	@echo "  make upload                 Upload source.zip to Google Cloud Storage"
-	@echo "  make deploy-source          Create zip and upload to GCS (zip + upload)"
-	@echo "  make clean                  Remove generated files (source.zip, temp dirs)"
+	@echo "Development:"
+	@echo "  make install                Install dependencies"
 	@echo "  make build                  Build TypeScript project"
 	@echo "  make test                   Run tests"
 	@echo "  make lint                   Run ESLint"
-	@echo "  make install                Install dependencies"
+	@echo "  make clean                  Remove generated files (source.zip, temp dirs)"
 	@echo ""
+	@echo "Deployment:"
+	@echo "  make zip                    Create source.zip with project files"
+	@echo "  make upload                 Upload source.zip to Google Cloud Storage"
+	@echo "  make deploy-source          Create zip and upload to GCS (zip + upload)"
+	@echo "  make deploy-function        Deploy Cloud Function using GCS source"
+	@echo "  make deploy-full            Deploy source + function (recommended)"
+	@echo "  make dev-deploy             Full workflow: install, test, build, deploy"
+	@echo ""
+	@echo "Utility:"
+	@echo "  make verify-gcs             Verify Google Cloud SDK setup"
+	@echo "  make list-gcs               Show GCS bucket contents"
+	@echo ""
+	@echo "Configuration:"
 	@echo "  GCS Bucket: gs://$(GCS_BUCKET)"
+	@echo "  Function: $(FUNCTION_NAME) in region $(REGION)"
+	@echo "  Runtime: $(RUNTIME), Entry: $(ENTRY_POINT)"
 	@echo ""
 
 # Install dependencies
@@ -116,6 +138,70 @@ deploy-source: zip upload
 	@echo "   gsutil cp gs://$(GCS_BUCKET)/$(ZIP_FILE) ."
 	@echo ""
 
+# Deploy Cloud Function
+.PHONY: deploy-function
+deploy-function:
+	@if [ ! -f "$(ZIP_FILE)" ]; then \
+		echo "Error: $(ZIP_FILE) not found. Source code must be uploaded to GCS first."; \
+		echo "Run 'make deploy-source' first."; \
+		exit 1; \
+	fi
+
+	@echo "Deploying Cloud Function $(FUNCTION_NAME)..."
+	@echo "  Region: $(REGION)"
+	@echo "  Runtime: $(RUNTIME)"
+	@echo "  Entry Point: $(ENTRY_POINT)"
+	@echo "  Memory: $(MEMORY)"
+	@echo "  Timeout: $(TIMEOUT)s"
+	@echo "  Source: gs://$(GCS_BUCKET)/$(ZIP_FILE)"
+	@echo "  Pub/Sub Topic: $(PUBSUB_TOPIC)"
+	@echo ""
+
+	# Check if Pub/Sub topic exists, create if it doesn't
+	@echo "Checking if Pub/Sub topic exists..."
+	@if ! gcloud pubsub topics describe $(PUBSUB_TOPIC) >/dev/null 2>&1; then \
+		echo "Topic $(PUBSUB_TOPIC) not found. Creating topic..."; \
+		gcloud pubsub topics create $(PUBSUB_TOPIC); \
+		echo "✓ Created Pub/Sub topic $(PUBSUB_TOPIC)"; \
+	else \
+		echo "✓ Pub/Sub topic $(PUBSUB_TOPIC) exists"; \
+	fi
+
+	# Deploy the Cloud Function using gcloud functions deploy
+	@gcloud functions deploy $(FUNCTION_NAME) \
+		--gen2 \
+		--region=$(REGION) \
+		--runtime=$(RUNTIME) \
+		--entry-point=$(ENTRY_POINT) \
+		--memory=$(MEMORY) \
+		--timeout=$(TIMEOUT) \
+		--source=gs://$(GCS_BUCKET)/$(ZIP_FILE) \
+		--trigger-topic=$(PUBSUB_TOPIC) \
+		--max-instances=1 \
+		--quiet
+
+	@echo ""
+	@echo "✓ Cloud Function $(FUNCTION_NAME) deployed successfully!"
+	@echo ""
+	@echo "   Function Name: $(FUNCTION_NAME)"
+	@echo "   Region: $(REGION)"
+	@echo "   Trigger: Pub/Sub Topic"
+	@echo "   Topic: $(PUBSUB_TOPIC)"
+	@echo ""
+	@echo "   You can view the function at:"
+	@echo "   https://console.cloud.google.com/functions/details/$(REGION)/$(FUNCTION_NAME)"
+	@echo ""
+
+# Full deployment (source + function)
+.PHONY: deploy-full
+deploy-full: deploy-source deploy-function
+	@echo ""
+	@echo "🎉 Full deployment completed successfully!"
+	@echo ""
+	@echo "   Source: gs://$(GCS_BUCKET)/$(ZIP_FILE)"
+	@echo "   Function: $(FUNCTION_NAME) in region $(REGION)"
+	@echo ""
+
 # Clean up generated files
 .PHONY: clean
 clean:
@@ -170,7 +256,11 @@ list-gcs:
 
 # Full development workflow
 .PHONY: dev-deploy
-dev-deploy: install lint test build deploy-source
+dev-deploy: install lint test build deploy-full
 	@echo ""
 	@echo "🚀 Full development deployment completed!"
+	@echo ""
+	@echo "   ✓ Dependencies installed and code tested"
+	@echo "   ✓ Source code deployed to GCS"
+	@echo "   ✓ Cloud Function deployed and configured"
 	@echo ""

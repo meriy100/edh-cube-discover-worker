@@ -1,0 +1,19 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - "main"
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+
+jobs:
+  production:
+    if: ${{ startsWith(github.ref, 'refs/heads/main') }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      gcp_project_id: edh-cube-discover-production
+      workload_identity_provider_project_num: 536072959326 # meriy100-core
+      deploy_branch: main
+      environment: production

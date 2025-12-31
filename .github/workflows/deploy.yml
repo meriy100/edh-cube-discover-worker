@@ -1,0 +1,72 @@
+name: Cloud Function Deployment
+on:
+  workflow_call:
+    inputs:
+      gcp_project_id:
+        type: string
+      workload_identity_provider_project_num:
+        type: string
+      deploy_branch:
+        type: string
+      environment:
+        type: string
+      max_instances:
+        default: '10'
+        type: string
+      concurrency:
+        default: '1'
+        type: string
+      timeout:
+        default: '60s'
+        type: string
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      pull-requests: read
+      deployments: write
+    strategy:
+      matrix:
+        function: [
+          "worker",
+        ]
+    steps:
+      - uses: chrnorm/deployment-action@v2
+        name: Create GitHub deployment
+        id: deployment
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          environment: ${{ inputs.environment }}-${{ matrix.function }}
+      - uses: actions/checkout@v4
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ inputs.workload_identity_provider_project_num }}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: 'function-deployer@${{ inputs.gcp_project_id }}.iam.gserviceaccount.com'
+          access_token_lifetime: '900s'
+          create_credentials_file: true
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Update deployment status (success)
+        if: success()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          environment: ${{ inputs.environment }}-${{ matrix.function }}
+          state: 'success'
+
+      - name: Update deployment status (failure)
+        if: failure()
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: '${{ secrets.GITHUB_TOKEN }}'
+          deployment-id: ${{ steps.deployment.outputs.deployment_id }}
+          environment: ${{ inputs.environment }}-${{ matrix.function }}
+          state: 'failure'
