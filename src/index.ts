@@ -1,4 +1,6 @@
 import { CloudEvent, cloudEvent } from '@google-cloud/functions-framework';
+import { z } from 'zod';
+import { attachScryfall } from './attachScryfall';
 
 /**
  * EDH Cube Discover Worker
@@ -7,7 +9,7 @@ import { CloudEvent, cloudEvent } from '@google-cloud/functions-framework';
  */
 
 // CloudEvent entry point for Eventarc triggers
-cloudEvent('worker', (cloudEvent: CloudEvent<any>) => {
+cloudEvent('worker', async (cloudEvent: CloudEvent<any>) => {
   console.log('EDH Cube Discover Worker started');
   console.log('CloudEvent received:', {
     id: cloudEvent.id,
@@ -19,27 +21,22 @@ cloudEvent('worker', (cloudEvent: CloudEvent<any>) => {
   });
 
   try {
-    // Process the CloudEvent based on its type
-    processCloudEvent(cloudEvent);
+    await processCloudEvent(cloudEvent);
   } catch (error) {
     console.error('Error processing CloudEvent:', error);
     throw error; // Re-throw to trigger function retry if needed
   }
 });
 
-/**
- * Process CloudEvent based on its type and source
- */
-function processCloudEvent(cloudEvent: CloudEvent<any>): void {
+async function processCloudEvent(cloudEvent: CloudEvent<any>): Promise<void> {
   const eventType = cloudEvent.type;
   const eventSource = cloudEvent.source;
 
   console.log(`Processing event type: ${eventType} from source: ${eventSource}`);
 
-  // Handle different event types
   switch (eventType) {
     case 'google.cloud.pubsub.topic.v1.messagePublished':
-      handlePubSubMessage(cloudEvent);
+      await handlePubSubMessage(cloudEvent);
       break;
     case 'google.cloud.storage.object.v1.finalized':
       handleStorageEvent(cloudEvent);
@@ -54,19 +51,17 @@ function processCloudEvent(cloudEvent: CloudEvent<any>): void {
   }
 }
 
-/**
- * Handle Pub/Sub message events
- */
-function handlePubSubMessage(cloudEvent: CloudEvent<any>): void {
+async function handlePubSubMessage(cloudEvent: CloudEvent<any>): Promise<void> {
   console.log('Processing Pub/Sub message');
 
   const messageData = cloudEvent.data;
-  let decodedData: any = null;
+  let decodedData: unknown = null;
+  let messageAttributes: Record<string, string> = {};
 
   try {
-    // Decode Pub/Sub message data (base64 encoded)
     if (messageData && typeof messageData === 'object' && 'message' in messageData) {
-      const message = (messageData as any).message;
+      const message = (messageData as { message: { data?: string; attributes?: Record<string, string> } }).message;
+
       if (message.data) {
         const decodedString = Buffer.from(message.data, 'base64').toString('utf-8');
         try {
@@ -75,12 +70,16 @@ function handlePubSubMessage(cloudEvent: CloudEvent<any>): void {
           decodedData = decodedString;
         }
       }
+
+      if (message.attributes && typeof message.attributes === 'object') {
+        messageAttributes = message.attributes;
+      }
     }
 
     console.log('Decoded Pub/Sub message:', decodedData);
+    console.log('Pub/Sub message attributes:', messageAttributes);
 
-    // Process the cube discovery task
-    processCubeDiscoveryTask(decodedData);
+    await processCubeDiscoveryTask(decodedData, messageAttributes);
 
   } catch (error) {
     console.error('Error processing Pub/Sub message:', error);
@@ -88,22 +87,14 @@ function handlePubSubMessage(cloudEvent: CloudEvent<any>): void {
   }
 }
 
-/**
- * Handle Cloud Storage events
- */
 function handleStorageEvent(cloudEvent: CloudEvent<any>): void {
   console.log('Processing Cloud Storage event');
 
   const storageData = cloudEvent.data;
   console.log('Storage event data:', storageData);
 
-  // Process storage-related cube discovery tasks
-  // e.g., when a new cube list file is uploaded
 }
 
-/**
- * Handle Firestore events
- */
 function handleFirestoreEvent(cloudEvent: CloudEvent<any>): void {
   console.log('Processing Firestore event');
 
@@ -113,9 +104,6 @@ function handleFirestoreEvent(cloudEvent: CloudEvent<any>): void {
   // Process Firestore document changes related to cube discovery
 }
 
-/**
- * Handle generic events
- */
 function handleGenericEvent(cloudEvent: CloudEvent<any>): void {
   console.log('Processing generic event');
   console.log('Event data:', cloudEvent.data);
@@ -123,34 +111,17 @@ function handleGenericEvent(cloudEvent: CloudEvent<any>): void {
   // Default processing for unknown event types
 }
 
-/**
- * Process cube discovery task
- */
-function processCubeDiscoveryTask(taskData: any): void {
+
+
+async function processCubeDiscoveryTask(taskData: unknown, attributes?: Record<string, string>): Promise<void> {
   console.log('Processing cube discovery task:', taskData);
-
-  // Example cube discovery logic
-  if (taskData && typeof taskData === 'object') {
-    const { action, cubeId, searchQuery } = taskData;
-
-    switch (action) {
-      case 'discover':
-        console.log(`Starting cube discovery for query: ${searchQuery}`);
-        // Implement cube discovery logic
-        break;
-      case 'update':
-        console.log(`Updating cube data for cubeId: ${cubeId}`);
-        // Implement cube update logic
-        break;
-      case 'analyze':
-        console.log(`Analyzing cube data for cubeId: ${cubeId}`);
-        // Implement cube analysis logic
-        break;
-      default:
-        console.log('Unknown action:', action);
-    }
+  console.log('Message attributes:', attributes);
+  const { eventType } = z.object({ eventType: z.string() }).parse(attributes);
+  switch (eventType) {
+    case 'attachScryfall':
+      await attachScryfall(z.object({ names:  z.array(z.string()) }).parse(taskData));
+      break;
   }
-
   console.log('Cube discovery task completed successfully');
 }
 
