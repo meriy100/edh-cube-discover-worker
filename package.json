@@ -8,16 +8,17 @@
     "start": "node dist/index.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "deploy": "gcloud functions deploy edh-cube-discover-worker --source . --entry-point main --runtime nodejs18 --trigger-http --allow-unauthenticated",
+    "deploy": "gcloud functions deploy edh-cube-discover-worker --source . --entry-point main --runtime nodejs24 --trigger-topic YOUR_PUBSUB_TOPIC",
+    "deploy:eventarc": "gcloud functions deploy edh-cube-discover-worker --source . --entry-point main --runtime nodejs24 --trigger-event-filters type=google.cloud.pubsub.topic.v1.messagePublished --trigger-event-filters-path-pattern topic=projects/YOUR_PROJECT_ID/topics/YOUR_TOPIC_NAME",
     "test": "jest",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=24.0.0"
   },
   "volta": {
-    "node": "18.18.2",
+    "node": "24.12.0",
     "yarn": "1.22.19"
   },
   "keywords": [
@@ -29,10 +30,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/functions-framework": "^3.3.0"
+    "@google-cloud/functions-framework": "^5.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^24.0.0",
     "typescript": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
