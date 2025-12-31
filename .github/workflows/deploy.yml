@@ -36,6 +36,7 @@ jobs:
           token: '${{ secrets.GITHUB_TOKEN }}'
           environment: ${{ inputs.environment }}
       - uses: actions/checkout@v4
+      - uses: volta-cli/action@v4
       - name: Authenticate to Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
