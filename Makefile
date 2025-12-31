@@ -38,7 +38,6 @@ help:
 	@echo "  make deploy-source          Create zip and upload to GCS (zip + upload)"
 	@echo "  make deploy-function        Deploy Cloud Function using GCS source"
 	@echo "  make deploy-full            Deploy source + function (recommended)"
-	@echo "  make dev-deploy             Full workflow: install, test, build, deploy"
 	@echo ""
 	@echo "Utility:"
 	@echo "  make verify-gcs             Verify Google Cloud SDK setup"
@@ -138,7 +137,7 @@ upload:
 
 # Create zip and upload (main deployment command)
 .PHONY: deploy-source
-deploy-source: zip upload
+deploy-source: install lint test build zip upload
 	@echo ""
 	@echo "🎉 Source deployment completed successfully!"
 	@echo ""
@@ -264,14 +263,3 @@ verify-gcs:
 list-gcs:
 	@echo "Contents of gs://$(GCS_BUCKET)/"
 	@gsutil ls -la gs://$(GCS_BUCKET)/ 2>/dev/null || echo "Bucket gs://$(GCS_BUCKET)/ not found or empty"
-
-# Full development workflow
-.PHONY: dev-deploy
-dev-deploy: install lint test build deploy-full
-	@echo ""
-	@echo "🚀 Full development deployment completed!"
-	@echo ""
-	@echo "   ✓ Dependencies installed and code tested"
-	@echo "   ✓ Source code deployed to GCS"
-	@echo "   ✓ Cloud Function deployed and configured"
-	@echo ""
