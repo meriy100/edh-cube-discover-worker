@@ -13,17 +13,25 @@ interface Args {
 
 export const translateCombo = async ({ combos }: Args) => {
   for (const { id, description, notablePrerequisites, nameDictionary } of combos) {
-    const descriptionJa = await translateComboDescription(description, nameDictionary);
-    const notablePrerequisitesJa = await translateComboDescription(notablePrerequisites, nameDictionary);
+    try {
+      console.log('Translating combo:', id);
+      const descriptionJa = await translateComboDescription(description, nameDictionary);
+      const notablePrerequisitesJa = await translateComboDescription(notablePrerequisites, nameDictionary);
 
-    await adminDb().collection('combos').doc(id).update(
-      { descriptionJa, notablePrerequisitesJa },
-    );
+      await adminDb().collection('combos').doc(id).update(
+        { descriptionJa, notablePrerequisitesJa },
+      );
+    } catch (error) {
+      console.error('Error translating combo:', id, error);
+    }
   }
 };
 
 
 export const translateComboDescription = async (text: string, nameDictionary: { en: string, ja: string }[]): Promise<string>  =>{
+  if (!text) {
+    return '';
+  }
   const dictionaryString = nameDictionary
     .map(pair => `- "${pair.en}" -> "${pair.ja}"`)
     .join('\n');
@@ -52,6 +60,9 @@ Translate the provided combo descriptions into Japanese, strictly adhering to th
 
 
 export const translateComboPrerequisites = async (text: string, nameDictionary: { en: string, ja: string }[]) => {
+  if (!text) {
+    return '';
+  }
   const dictionaryString = nameDictionary
     .map(pair => `- "${pair.en}" -> "${pair.ja}"`)
     .join('\n');
@@ -94,10 +105,10 @@ const translateVertex = async (text: string, systemInstruction: string) => {
       contents: [{ role: 'user', parts: [{ text }] }],
     });
 
-    const translatedText = result.response.candidates?.[0].content.parts[0].text;
+    const translatedText = result.response.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!translatedText) {
-      throw new Error('No translation generated');
+      throw new Error(`No translation generated. results: ${JSON.stringify(result, null, 2)}`);
     }
 
     return translatedText;

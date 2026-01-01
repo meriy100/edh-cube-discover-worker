@@ -192,7 +192,7 @@ deploy-function:
 		--trigger-topic=$(PUBSUB_TOPIC) \
 		--service-account=$(SERVICE_ACCOUNT) \
 		--retry \
-		--max-instances=1 \
+		--max-instances=5 \
 		--quiet
 
 	@echo ""

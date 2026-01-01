@@ -11,6 +11,6 @@ export const vertexAI = new VertexAI({ project: PROJECT_ID, location: LOCATION }
 
 export const generationConfig: GenerationConfig = {
   temperature: 0.2, // 翻訳の正確性を高めるため低めに設定
-  maxOutputTokens: 2024,
+  maxOutputTokens: 4000,
 };
 
