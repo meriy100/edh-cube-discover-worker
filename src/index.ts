@@ -2,6 +2,7 @@ import { CloudEvent, cloudEvent } from '@google-cloud/functions-framework';
 import { z } from 'zod';
 import { attachScryfall } from './attachScryfall';
 import { saveCombos } from './saveCombos';
+import { translateCombo } from './translateCombo';
 
 /**
  * EDH Cube Discover Worker
@@ -113,7 +114,6 @@ function handleGenericEvent(cloudEvent: CloudEvent<any>): void {
 }
 
 
-
 async function processCubeDiscoveryTask(taskData: unknown, attributes?: Record<string, string>): Promise<void> {
   console.log('Processing cube discovery task:', taskData);
   console.log('Message attributes:', attributes);
@@ -122,16 +122,25 @@ async function processCubeDiscoveryTask(taskData: unknown, attributes?: Record<s
     case 'attachScryfall':
       await attachScryfall(
         z.object({
-         cards: z.array(z.object({ id: z.string(),  name:  z.string() }))
+          cards: z.array(z.object({ id: z.string(), name: z.string() }))
         }).parse(taskData));
       break;
     case 'saveCombos':
       await saveCombos(z.object({
         poolId: z.string(),
-        cards: z.array(z.object({ id: z.string(),  name:  z.string() }))
+        cards: z.array(z.object({ id: z.string(), name: z.string() }))
       }).parse(taskData));
       break;
-
+    case 'translateCombos':
+      await translateCombo(z.object({
+        combos: z.array(z.object({
+          id: z.string(),
+          description: z.string(),
+          notablePrerequisites: z.string(),
+          nameDictionary: z.array(z.object({ en: z.string(), ja: z.string() })),
+        }))
+      }).parse(taskData));
+      break;
   }
   console.log('Cube discovery task completed successfully');
 }
