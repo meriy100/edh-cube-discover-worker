@@ -11,10 +11,12 @@ interface Args {
 
 export const saveCombos= async (args: Args): Promise<void> => {
   for await (const combo of findAllCombosGenerator(args.cards.map(c => ({ card: c.name, quantity: 1 })), 1000)) {
-    await adminDb().collection('combos').doc(combo.id).set(combo, { merge: true });
+    const cardNames = combo.uses.map(use => use.card.name);
+
+    await adminDb().collection('combos').doc(combo.id).set({ ...combo, cardNames }, { merge: true });
     await adminDb().collection('pools').doc(args.poolId).collection('poolXCombos').doc(combo.id).set({
       id: combo.id,
-      cardNames: combo.uses.map(use => use.card.name),
+      cardNames,
     }, { merge: true });
 
   }

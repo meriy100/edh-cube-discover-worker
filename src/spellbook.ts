@@ -50,7 +50,7 @@ export async function* findAllCombosGenerator(
   main: SpellbookCardParam[],
   limit = 20,
  ):  AsyncGenerator<Combo, void, unknown> {
-  let nextUrl: string | null = `https://backend.commanderspellbook.com/find-my-combos?limit=${limit}`;
+  let nextUrl: string | null = `https://backend.commanderspellbook.com/find-my-combos?limit=${limit}&q=colors%3C4`;
 
   const body = {
     main: main,
