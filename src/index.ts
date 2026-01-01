@@ -1,6 +1,7 @@
 import { CloudEvent, cloudEvent } from '@google-cloud/functions-framework';
 import { z } from 'zod';
 import { attachScryfall } from './attachScryfall';
+import { saveCombos } from './saveCombos';
 
 /**
  * EDH Cube Discover Worker
@@ -124,6 +125,13 @@ async function processCubeDiscoveryTask(taskData: unknown, attributes?: Record<s
          cards: z.array(z.object({ id: z.string(),  name:  z.string() }))
         }).parse(taskData));
       break;
+    case 'saveCombos':
+      await saveCombos(z.object({
+        poolId: z.string(),
+        cards: z.array(z.object({ id: z.string(),  name:  z.string() }))
+      }).parse(taskData));
+      break;
+
   }
   console.log('Cube discovery task completed successfully');
 }
