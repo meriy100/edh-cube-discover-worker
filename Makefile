@@ -191,6 +191,7 @@ deploy-function:
 		--source=gs://$(GCS_BUCKET)/$(ZIP_FILE) \
 		--trigger-topic=$(PUBSUB_TOPIC) \
 		--service-account=$(SERVICE_ACCOUNT) \
+		--set-env-vars=GOOGLE_CLOUD_PROJECT=$(GCP_PROJECT) \
 		--retry \
 		--max-instances=5 \
 		--quiet
