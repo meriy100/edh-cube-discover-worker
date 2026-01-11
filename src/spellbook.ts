@@ -16,6 +16,21 @@ const featureProducedByVariantSchema  =z.object({
   name: z.string(),
 });
 
+const templateSchema = z.object(
+  {
+    id: z.number(),
+    name: z.string(),
+  }
+);
+
+const templateInVariantSchema = z.object(
+  {
+    template: templateSchema,
+    zoneLocations: z.array(z.string()),
+    quantity: z.number(),
+  }
+);
+
 const comboSchema = z.object({
   id: z.string(),
   uses: z.array(
@@ -27,6 +42,7 @@ const comboSchema = z.object({
   manaNeeded: z.string(),
   identity: z.string(),
   produces: z.array(z.object({ feature: featureProducedByVariantSchema })),
+  requires: z.array(templateInVariantSchema),
   easyPrerequisites: z.string(),
   notablePrerequisites: z.string(),
   description: z.string(),
