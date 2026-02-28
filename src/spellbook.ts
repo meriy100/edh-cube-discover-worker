@@ -53,7 +53,7 @@ export type Combo = z.infer<typeof comboSchema>;
 
 const spellbookResponseSchema = z.object(
   {
-    count: z.number(),
+    count: z.number().nullable(),
     previous: z.string().nullable(),
     next: z.string().nullable(),
     results: z.object({
