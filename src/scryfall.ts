@@ -108,7 +108,7 @@ export const fetchScryfall = async (cardName: string): Promise<CardResponse> => 
     if (enRes.status === 404) {
       throw new Error(`Card not found: ${cardName}`);
     }
-    throw new Error(`Scryfall API error: ${enRes.status}`);
+    throw new Error(`Scryfall API error: ${enRes.status}. Request ${cardName}`);
   }
 
   const enData = scryfallCardSchema.parse(await enRes.json());

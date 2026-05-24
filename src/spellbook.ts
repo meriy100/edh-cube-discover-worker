@@ -85,7 +85,7 @@ export async function* findAllCombosGenerator(
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}. Request body:  ${JSON.stringify(body)}`);
     }
 
     const json = await response.json();

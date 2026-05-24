@@ -17,5 +17,6 @@ export const attachScryfall= async (args: Args): Promise<void> => {
       scryfall: data.en,
       scryfallJa: data.ja
     });
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
 };
