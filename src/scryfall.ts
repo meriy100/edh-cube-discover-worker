@@ -99,10 +99,14 @@ const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
  */
 export const fetchScryfall = async (cardName: string): Promise<CardResponse> => {
   const baseUrl = 'https://api.scryfall.com';
+  const headers = {
+    "User-Agent": "EDHCubeSimulator/1.0 (contact: meriy100)",
+    Accept: "application/json",
+  };
 
   // 1. 英語版を exact 検索で取得
   const enUrl = `${baseUrl}/cards/named?exact=${encodeURIComponent(cardName)}`;
-  const enRes = await fetch(enUrl);
+  const enRes = await fetch(enUrl, { headers });
 
   if (!enRes.ok) {
     if (enRes.status === 404) {
